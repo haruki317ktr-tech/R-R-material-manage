@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>リバ×リバ 覚醒素材管理 Ver.6</title>
+<style>
+:root{color-scheme:dark;--bg:#11131a;--panel:#1b1f2b;--panel2:#242a38;--line:#343b4e;--text:#eef1f8;--muted:#aab2c5;--accent:#8ab4ff;--danger:#ff8d98;--ok:#8fe0b0}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:auto;padding:20px 14px 44px}h1{font-size:1.55rem;margin:0 0 5px}h2{font-size:1.12rem;margin:0 0 12px}p{margin:6px 0;color:var(--muted)}.sub{color:var(--muted);font-size:.9rem}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:16px;margin-top:15px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:flex;flex-direction:column;gap:5px}label{font-size:.87rem;color:var(--muted)}input,select,button{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 10px;min-width:0}input[type=number]{width:100%}button{cursor:pointer;font-weight:600}button.primary{background:#294875;border-color:#416aa5}button.danger{color:#ffc0c5}button.small{padding:6px 9px;font-size:.86rem}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.table-wrap{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:550px}th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-size:.84rem;font-weight:600}td.num{text-align:right;font-variant-numeric:tabular-nums}tr:last-child td{border-bottom:0}.rank{display:inline-block;border-radius:6px;padding:2px 7px;font-size:.8rem;font-weight:700}.金{background:#73591b;color:#ffe6a0}.紫{background:#533c78;color:#e4d2ff}.青{background:#244f75;color:#c4e7ff}.白{background:#d8deea;color:#202636}.short{color:var(--danger);font-weight:700}.enough{color:var(--ok)}.knight{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}.knight-head{display:flex;align-items:center;justify-content:space-between;gap:10px}.knight-name{font-weight:700}.pill{font-size:.8rem;color:var(--muted);background:var(--panel2);padding:3px 7px;border-radius:99px}.empty{color:var(--muted);padding:12px 0}.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}.stat{background:var(--panel2);border-radius:10px;padding:12px}.stat strong{font-size:1.35rem;display:block}.stat span{font-size:.8rem;color:var(--muted)}.material-row{display:grid;grid-template-columns:minmax(110px,1fr) repeat(4,minmax(66px,90px));gap:7px;align-items:center;padding:6px 0;border-bottom:1px solid var(--line)}.material-row:last-child{border-bottom:0}.mat-title{font-weight:600}.rank-head{text-align:center;font-size:.8rem;color:var(--muted)}.help{font-size:.85rem;color:var(--muted)}.checkline{display:flex;gap:8px;align-items:center;margin-top:10px}.checkline input{width:auto}.panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}.panel-heading h2{margin:0}.collapse-toggle{flex-shrink:0}.list-fold{border:1px solid var(--line);border-radius:10px;margin-top:12px;padding:10px 12px;background:rgba(255,255,255,.02)}.list-fold summary{cursor:pointer;font-weight:650}.list-fold[open] summary{margin-bottom:10px}.admin-fold{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-top:12px;background:var(--panel2)}.admin-fold summary{cursor:pointer;font-weight:700}.admin-fold[open] summary{margin-bottom:10px}.admin-fold .panel{margin-top:0}.panel-content{margin-top:12px}.panel-content>.panel{margin-top:12px}
+@media(max-width:650px){main{padding:16px 10px 32px}.grid{grid-template-columns:1fr}.summary{grid-template-columns:1fr 1fr}.material-row{grid-template-columns:minmax(90px,1fr) repeat(4,minmax(48px,1fr));gap:5px}.material-row input{padding:8px 5px}.panel{padding:13px}.knight-head{align-items:flex-start}}
+</style>
+</head>
+<body><main>
+<header><h1>リバ×リバ 覚醒素材管理 <span class="pill">Ver.6</span></h1><p>騎士の覚醒ランクと所持素材から、不足素材を自動計算します。</p></header>
+<section class="panel">
+<h2>① 騎士データの登録</h2>
+<p>騎士名・スタイル名・素材A/Bを登録します。同じ騎士でもスタイルが違えば別データです。表示名の「≪≫」は自動で付けます。</p>
+<div class="grid">
+ <div class="field"><label for="catalogName">騎士名</label><input id="catalogName" placeholder="例：カノン"></div>
+ <div class="field"><label for="catalogStyle">スタイル名</label><input id="catalogStyle" placeholder="例：DEFAULT（記号≪≫は不要）"></div>
+ <div class="field"><label for="catalogMatA">素材A</label><select id="catalogMatA"></select></div>
+ <div class="field"><label for="catalogMatB">素材B</label><select id="catalogMatB"></select></div>
+</div>
+<div class="actions"><button class="primary" id="saveCatalog">騎士データを登録</button></div>
+<details class="admin-fold">
+ <summary>管理者向け：騎士データの一括登録・更新（CSV）</summary>
+ <p>スプレッドシートを「CSV UTF-8」形式で保存し、ここから読み込んでください。「騎士名＋スタイル名」が一致するデータは素材を更新し、新しいスタイルは追加します。CSVに存在しないデータは削除しません。</p>
+ <div class="actions"><button id="csvTemplateBtn">CSV見本をダウンロード</button><button class="primary" id="csvImportBtn">CSVを読み込む</button><input id="csvFile" type="file" accept=".csv,text/csv" hidden></div>
+ <div id="csvStatus" class="help" aria-live="polite"></div>
+ <p class="help">※この項目を折りたたんでいるだけで、パスワード等によるアクセス制限ではありません。</p>
+</details>
+<details class="list-fold" id="catalogListFold">
+ <summary id="catalogFoldLabel">登録済みスタイル一覧を表示</summary>
+ <div class="field" style="margin-top:12px"><label for="catalogSearch">登録済みスタイルを検索</label><input id="catalogSearch" placeholder="騎士名・スタイル名で検索"></div>
+ <div id="catalogList"></div>
+ <p class="help">素材の組み合わせが違っていたら、登録済みデータを編集できます。登録済みの育成目標にも変更が反映されます。</p>
+</details>
+</section>
+<section class="panel">
+<h2>② 騎士の育成目標</h2>
+<div class="grid">
+ <div class="field"><label for="knightSearch">騎士・スタイルを検索</label><input id="knightSearch" placeholder="例：カノン / DEFAULT"></div>
+ <div class="field"><label for="knightPreset">騎士≪スタイル≫</label><select id="knightPreset"></select></div>
+ <div class="field"><label>素材A（自動入力）</label><input id="matAView" readonly></div>
+ <div class="field"><label>素材B（自動入力）</label><input id="matBView" readonly></div>
+ <div class="field"><label for="currentRank">現在の覚醒ランク</label><select id="currentRank"></select></div>
+ <div class="field"><label for="targetRank">目標の覚醒ランク</label><select id="targetRank"></select></div>
+</div>
+<div class="actions"><button class="primary" id="addKnight">育成目標に追加</button></div>
+<details class="list-fold" id="knightListFold">
+ <summary id="knightFoldLabel">登録済みの育成目標を表示</summary>
+ <div id="knightList"></div>
+</details>
+<p class="help">同じ騎士を複数の目標として登録することもできます。必要素材は登録した目標すべてを合算します。</p>
+</section>
+<section class="panel">
+<h2>③ 所持素材数</h2>
+<p>素材14種類 × 4ランク（金・紫・青・白）の所持数を入力してください。白・青も計算には含めますが、不足一覧では初期設定で非表示にできます。</p>
+<div class="material-row"><div class="rank-head" style="text-align:left">素材名</div><div class="rank-head"><span class="rank 金">金</span></div><div class="rank-head"><span class="rank 紫">紫</span></div><div class="rank-head"><span class="rank 青">青</span></div><div class="rank-head"><span class="rank 白">白</span></div></div>
+<div id="inventory"></div>
+<div class="actions"><button id="zeroInventory" class="small">所持数をすべて0にする</button></div>
+</section>
+<section class="panel">
+<h2>④ 不足素材一覧</h2>
+<div class="summary" id="summary"></div>
+<label class="checkline"><input type="checkbox" id="hideLower" checked> 白・青素材の不足を一覧から隠す（必要数の計算には含める）</label>
+<div class="table-wrap"><table><thead><tr><th>素材</th><th>ランク</th><th>必要数</th><th>所持数</th><th>不足数</th></tr></thead><tbody id="shortageList"></tbody></table></div>
+<div class="actions"><button id="exportBtn">バックアップを書き出す</button><button id="importBtn">バックアップを読み込む</button><input id="importFile" type="file" accept=".json,application/json" hidden></div>
+<p class="help">データはこのブラウザ内に保存されます。定期的にバックアップを書き出してください。別の端末とは自動同期されません。</p>
+</section>
+<section class="panel">
+<h2>覚醒強化の共通ルール</h2>
+<div class="table-wrap"><table><thead><tr><th>覚醒段階</th><th>素材ランク</th><th>素材A</th><th>素材B</th></tr></thead><tbody id="rules"></tbody></table></div>
+</section>
+</main>
+<script>
+const MATERIALS = ["エルスタニア聖水","黒曜呪物","LK-M薬剤","起源魔核","ドラゴニク鉱","廻転機関","エナジーゲル","ナノ累重基盤","フラーレン","深成花晶","隔絶生態","オペロン膜","カゴメ","バチルス"];
+const RANKS = ["金","紫","青","白"];
+const RULES = [
+ [1,2,"白",5,2],[2,3,"白",7,3],[3,4,"白",9,4],
+ [4,5,"青",5,2],[5,6,"青",9,4],[6,7,"青",13,6],
+ [7,8,"紫",5,2],[8,9,"紫",9,4],[9,10,"紫",13,8],
+ [10,11,"金",5,2],[11,12,"金",11,6],[12,13,"金",13,13]
+];
+const defaultState = () => ({
+ knights:[], catalog:[],
+ inventory:Object.fromEntries(MATERIALS.map(m=>[m,Object.fromEntries(RANKS.map(r=>[r,0]))])),
+ hideLower:true
+});
+let state = defaultState();
+const $ = id => document.getElementById(id);
+function safeLoad(){
+ try {
+  const raw=localStorage.getItem("rbxr_awaken_v2");
+  if(raw){const parsed=JSON.parse(raw);state={...defaultState(),...parsed};}
+  state.catalog=Array.isArray(state.catalog)?state.catalog:[];
+  state.catalog.forEach(parseLegacyStyle);
+  state.knights=(state.knights||[]).map(k=>{if(k.catalogId){const c=state.catalog.find(c=>c.id===k.catalogId);if(c){k.name=c.name;k.styleName=c.styleName||"";k.displayName=displayName(c);}}else{k.displayName=k.name;}return k;});
+  state.inventory??={};
+  for(const m of MATERIALS){state.inventory[m]??={};for(const r of RANKS)state.inventory[m][r]=Math.max(0,Number(state.inventory[m][r])||0);}
+  // 既存の育成目標・所持素材を維持し、騎士マスターだけを別に管理する
+  state.knights=(state.knights||[]).map(k=>({...k,matA:MATERIALS.includes(k.matA)?k.matA:MATERIALS[0],matB:MATERIALS.includes(k.matB)?k.matB:MATERIALS[1]}));
+ } catch(e) { state=defaultState(); }
+}
+function save(){try{localStorage.setItem("rbxr_awaken_v2",JSON.stringify(state));}catch(e){} render();updateFoldLabels();}
+function fillSelects(){
+ for(const id of ["catalogMatA","catalogMatB"]){$(id).innerHTML=MATERIALS.map(m=>`<option>${m}</option>`).join("");}
+ for(const id of ["currentRank","targetRank"]){$(id).innerHTML=Array.from({length:13},(_,i)=>`<option value="${i+1}">${i+1}</option>`).join("");}
+ $("currentRank").value="1";$("targetRank").value="13";
+}
+function parseLegacyStyle(c){
+ if(c.styleName!==undefined&&c.styleName!==null)return c;
+ const match=String(c.name||"").match(/^(.*?)≪([^≪≫]+)≫$/);
+ if(match){c.name=match[1].trim();c.styleName=match[2].trim();}
+ else c.styleName="";
+ return c;
+}
+function displayName(c){return c.styleName?`${c.name}≪${c.styleName}≫`:c.name;}
+function catalogKey(c){return `${String(c.name||"").trim().toLocaleLowerCase()}\u0000${String(c.styleName||"").trim().toLocaleLowerCase()}`;}
+function renderCatalog(){
+ const box=$("catalogList");
+ const query=$("catalogSearch").value.trim().toLocaleLowerCase();
+ const visible=state.catalog.map((c,i)=>({c,i})).filter(({c})=>!query||`${c.name} ${c.styleName||""} ${displayName(c)}`.toLocaleLowerCase().includes(query));
+ box.innerHTML=visible.length?visible.map(({c,i})=>`<div class="knight"><div class="knight-head"><div><div class="knight-name">${esc(displayName(c))}</div><div class="sub">${c.matA} ＋ ${c.matB}</div></div><div class="actions" style="margin-top:0"><button class="small" data-edit-catalog="${i}">編集</button><button class="small danger" data-delete-catalog="${i}">削除</button></div></div></div>`).join(""):`<p class="empty">${state.catalog.length?"検索に一致するスタイルがありません。":"騎士データはまだ登録されていません。上の欄から登録してください。"}</p>`;
+ box.querySelectorAll("[data-edit-catalog]").forEach(b=>b.onclick=()=>{const c=state.catalog[+b.dataset.editCatalog];$("catalogName").value=c.name;$("catalogStyle").value=c.styleName||"";$("catalogMatA").value=c.matA;$("catalogMatB").value=c.matB;$("saveCatalog").dataset.editId=c.id;$("saveCatalog").textContent="騎士データを更新";$("catalogName").focus();});
+ box.querySelectorAll("[data-delete-catalog]").forEach(b=>b.onclick=()=>{const c=state.catalog[+b.dataset.deleteCatalog];if(confirm(`${displayName(c)} の騎士データを削除しますか？\n登録済みの育成目標は残り、素材は現在の記録を維持します。`)){state.catalog=state.catalog.filter(x=>x.id!==c.id);save();}});
+ const select=$("knightPreset"),previous=select.value,searchQuery=$("knightSearch").value.trim().toLocaleLowerCase();
+ const filtered=state.catalog.filter(c=>!searchQuery||`${c.name} ${c.styleName||""} ${displayName(c)}`.toLocaleLowerCase().includes(searchQuery));
+ select.innerHTML=filtered.map(c=>`<option value="${esc(c.id)}">${esc(displayName(c))}</option>`).join("");
+ if(filtered.some(c=>c.id===previous))select.value=previous;
+ updatePresetMaterials();
+}
+function updatePresetMaterials(){
+ const c=state.catalog.find(x=>x.id===$("knightPreset").value);
+ $("matAView").value=c?c.matA:"騎士データを先に登録";
+ $("matBView").value=c?c.matB:"騎士データを先に登録";
+ $("addKnight").disabled=!c;
+}
+function renderKnights(){
+ const box=$("knightList");
+ if(!state.knights.length){box.innerHTML='<p class="empty">騎士はまだ登録されていません。</p>';return;}
+ box.innerHTML=state.knights.map((k,i)=>`<div class="knight">
+ <div class="knight-head"><div><div class="knight-name">${esc(k.displayName||k.name)}</div><div class="sub">${k.matA} ＋ ${k.matB} ／ 覚醒 ${k.current} → ${k.target}</div></div><button class="small danger" data-delete="${i}">削除</button></div>
+ <div class="grid" style="margin-top:10px">
+ <div class="field"><label>現在ランク</label><select data-kfield="current" data-index="${i}">${rankOptions(k.current)}</select></div>
+ <div class="field"><label>目標ランク</label><select data-kfield="target" data-index="${i}">${rankOptions(k.target)}</select></div>
+ <div class="field"><label>素材A</label><select data-kfield="matA" data-index="${i}">${materialOptions(k.matA)}</select></div>
+ <div class="field"><label>素材B</label><select data-kfield="matB" data-index="${i}">${materialOptions(k.matB)}</select></div></div></div>`).join("");
+ box.querySelectorAll("[data-delete]").forEach(b=>b.onclick=()=>{state.knights.splice(+b.dataset.delete,1);save();});
+ box.querySelectorAll("[data-kfield]").forEach(s=>s.onchange=()=>{const k=state.knights[+s.dataset.index];const f=s.dataset.kfield;k[f]=["current","target"].includes(f)?+s.value:s.value;if(k.current>k.target)k.target=k.current;save();});
+}
+function rankOptions(selected){return Array.from({length:13},(_,i)=>i+1).map(n=>`<option value="${n}" ${n===+selected?"selected":""}>${n}</option>`).join("");}
+function materialOptions(selected){return MATERIALS.map(m=>`<option ${m===selected?"selected":""}>${m}</option>`).join("");}
+function renderInventory(){
+ $("inventory").innerHTML=MATERIALS.map(m=>`<div class="material-row"><div class="mat-title">${m}</div>${RANKS.map(r=>`<div><input aria-label="${m} ${r}素材の所持数" type="number" min="0" step="1" value="${Number(state.inventory?.[m]?.[r]||0)}" data-mat="${m}" data-rank="${r}"></div>`).join("")}</div>`).join("");
+ $("inventory").querySelectorAll("input").forEach(inp=>inp.onchange=()=>{const m=inp.dataset.mat,r=inp.dataset.rank;state.inventory[m][r]=Math.max(0,Math.floor(Number(inp.value)||0));save();});
+}
+function calculate(){
+ const required=Object.fromEntries(MATERIALS.map(m=>[m,Object.fromEntries(RANKS.map(r=>[r,0]))]));
+ for(const k of state.knights){
+  const start=Number(k.current),end=Number(k.target);
+  if(start>=end)continue;
+  for(const rule of RULES){const [from,to,rank,a,b]=rule;if(from>=start&&to<=end){required[k.matA][rank]+=a;required[k.matB][rank]+=b;}}
+ }
+ return required;
+}
+function renderShortages(){
+ const req=calculate();let rows=[],totalNeed=0,totalShort=0,uniqueShort=0;
+ for(const m of MATERIALS)for(const r of RANKS){
+  const need=req[m][r],owned=Number(state.inventory?.[m]?.[r]||0),short=Math.max(0,need-owned);
+  totalNeed+=need;if(short>0){totalShort+=short;uniqueShort++;if(!(state.hideLower&&["青","白"].includes(r)))rows.push({m,r,need,owned,short});}
+ }
+ $("summary").innerHTML=`<div class="stat"><span>必要素材の合計個数</span><strong>${totalNeed}</strong></div><div class="stat"><span>不足している素材の種類</span><strong>${rows.length}</strong></div><div class="stat"><span>不足数合計（全ランク）</span><strong>${totalShort}</strong></div>`;
+ rows.sort((a,b)=>RANKS.indexOf(a.r)-RANKS.indexOf(b.r)||b.short-a.short||a.m.localeCompare(b.m,"ja"));
+ $("shortageList").innerHTML=rows.length?rows.map(x=>`<tr><td>${x.m}</td><td><span class="rank ${x.r}">${x.r}</span></td><td class="num">${x.need}</td><td class="num">${x.owned}</td><td class="num short">${x.short}</td></tr>`).join(""):`<tr><td colspan="5" class="enough">表示対象の不足素材はありません！</td></tr>`;
+}
+function renderRules(){$("rules").innerHTML=RULES.map(([a,b,r,x,y])=>`<tr><td>${a} → ${b}</td><td><span class="rank ${r}">${r}</span></td><td>${x}</td><td>${y}</td></tr>`).join("");}
+function render(){renderCatalog();renderKnights();renderInventory();renderShortages();$("hideLower").checked=!!state.hideLower;}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+function parseCSV(text){
+ text=text.replace(/^\uFEFF/,"");
+ const rows=[];let row=[],cell="",quoted=false;
+ for(let i=0;i<text.length;i++){
+  const ch=text[i];
+  if(quoted){
+   if(ch==='"'&&text[i+1]==='"'){cell+='"';i++;}
+   else if(ch==='"')quoted=false;
+   else cell+=ch;
+  }else{
+   if(ch==='"'&&cell==="")quoted=true;
+   else if(ch===","){row.push(cell.trim());cell="";}
+   else if(ch==="\n"){row.push(cell.trim());rows.push(row);row=[];cell="";}
+   else if(ch!=="\r")cell+=ch;
+  }
+ }
+ if(quoted)throw new Error("CSVの引用符が閉じられていません。");
+ if(cell.length||row.length){row.push(cell.trim());rows.push(row);}
+ return rows.filter(r=>r.some(v=>v!==""));
+}
+function downloadText(filename,text,type){
+ const blob=new Blob([text],{type});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+$("csvTemplateBtn").onclick=()=>{
+ const csv="\uFEFF騎士名,スタイル名,素材A,素材B\r\nカノン,DEFAULT,聖水,黒曜\r\nカノン,別スタイル名,薬剤,魔核\r\n";
+ downloadText("rbxr_knight_master_template.csv",csv,"text/csv;charset=utf-8");
+};
+$("csvImportBtn").onclick=()=>$("csvFile").click();
+$("csvFile").onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ const status=$("csvStatus");status.textContent="";
+ try{
+  const rows=parseCSV(await file.text());
+  if(rows.length<2)throw new Error("見出し行と、1人以上の騎士データを含めてください。");
+  const headers=rows[0].map(h=>h.replace(/^\uFEFF/,"").trim());
+  const nameIndex=headers.indexOf("騎士名"),styleIndex=headers.indexOf("スタイル名"),aIndex=headers.indexOf("素材A"),bIndex=headers.indexOf("素材B");
+  if(nameIndex<0||styleIndex<0||aIndex<0||bIndex<0)throw new Error("1行目に「騎士名」「スタイル名」「素材A」「素材B」の見出しが必要です。");
+  const incoming=[],seen=new Set(),errors=[];
+  for(let i=1;i<rows.length;i++){
+   const cols=rows[i],name=(cols[nameIndex]||"").trim(),styleName=(cols[styleIndex]||"").trim(),matA=(cols[aIndex]||"").trim(),matB=(cols[bIndex]||"").trim(),line=i+1;
+   if(!name&&!styleName&&!matA&&!matB)continue;
+   if(!name||!styleName||!matA||!matB){errors.push(`${line}行目：騎士名・スタイル名・素材A・素材Bのいずれかが空欄です。`);continue;}
+   const incomingKey=catalogKey({name,styleName});
+   if(seen.has(incomingKey)){errors.push(`${line}行目：「${displayName({name,styleName})}」がCSV内で重複しています。`);continue;}
+   seen.add(incomingKey);
+   if(!MATERIALS.includes(matA)||!MATERIALS.includes(matB)){errors.push(`${line}行目：「${displayName({name,styleName})}」の素材名が14種類の正式名称と一致しません。`);continue;}
+   if(matA===matB){errors.push(`${line}行目：「${displayName({name,styleName})}」の素材Aと素材Bが同じです。`);continue;}
+   incoming.push({name,styleName,matA,matB});
+  }
+  if(errors.length)throw new Error("CSVの内容を確認してください。\n"+errors.slice(0,8).join("\n")+(errors.length>8?`\nほか${errors.length-8}件`:""));
+  if(!incoming.length)throw new Error("有効な騎士データがありません。");
+  const existingNames=new Set(state.catalog.map(c=>catalogKey(c)));
+  const added=incoming.filter(c=>!existingNames.has(catalogKey(c))).length;
+  const updated=incoming.length-added;
+  if(!confirm(`CSV内の${incoming.length}スタイルを追加・更新します。\n新規追加：${added}スタイル\n既存更新：${updated}スタイル\n\nCSVにない騎士と、育成状況・所持素材は削除しません。続けますか？`))return;
+  for(const item of incoming){
+   let catalog=state.catalog.find(c=>catalogKey(c)===catalogKey(item));
+   if(catalog){catalog.matA=item.matA;catalog.matB=item.matB;catalog.styleName=item.styleName;}
+   else{catalog={id:`knight-${Date.now()}-${Math.random().toString(36).slice(2,9)}`,...item};state.catalog.push(catalog);}
+   state.knights.forEach(k=>{if(k.catalogId===catalog.id){k.name=catalog.name;k.styleName=catalog.styleName;k.displayName=displayName(catalog);k.matA=catalog.matA;k.matB=catalog.matB;}});
+  }
+  save();status.textContent=`読み込み完了：新規追加 ${added}スタイル、更新 ${updated}スタイル。育成状況・所持素材は保持されています。`;
+ }catch(err){status.textContent=`読み込みエラー：${err.message}`;alert(`CSVを読み込めませんでした。\n${err.message}`);}
+ finally{e.target.value="";}
+};
+
+$("saveCatalog").onclick=()=>{
+ const name=$("catalogName").value.trim(),styleName=$("catalogStyle").value.trim(),matA=$("catalogMatA").value,matB=$("catalogMatB").value;
+ if(!name||!styleName){alert("騎士名とスタイル名を入力してください。");return;}
+ if(matA===matB){alert("素材Aと素材Bは別々の素材を選んでください。");return;}
+ const editId=$("saveCatalog").dataset.editId;
+ if(state.catalog.some(c=>catalogKey(c)===catalogKey({name,styleName})&&c.id!==editId)){alert("同じ騎士名・スタイル名の組み合わせがすでに登録されています。");return;}
+ if(editId){const c=state.catalog.find(x=>x.id===editId);if(c){c.name=name;c.styleName=styleName;c.matA=matA;c.matB=matB;state.knights.forEach(k=>{if(k.catalogId===editId){k.name=name;k.styleName=styleName;k.displayName=displayName(c);k.matA=matA;k.matB=matB;}});}delete $("saveCatalog").dataset.editId;$("saveCatalog").textContent="騎士データを登録";}
+ else {state.catalog.push({id:`knight-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,name,styleName,matA,matB});}
+ $("catalogName").value="";$("catalogStyle").value="";save();
+};
+$("knightPreset").onchange=updatePresetMaterials;
+$("catalogSearch").oninput=renderCatalog;
+$("knightSearch").oninput=()=>{const old=$("knightPreset").value;renderCatalog();if($("knightPreset").querySelector(`option[value="${CSS.escape(old)}"]`))$("knightPreset").value=old;updatePresetMaterials();};
+$("addKnight").onclick=()=>{
+ const preset=state.catalog.find(c=>c.id===$("knightPreset").value);if(!preset)return;
+ const current=+$("currentRank").value,target=+$("targetRank").value;
+ if(current>target){alert("目標ランクは現在ランク以上にしてください。");return;}
+ state.knights.push({catalogId:preset.id,name:preset.name,styleName:preset.styleName||"",displayName:displayName(preset),matA:preset.matA,matB:preset.matB,current,target});save();
+};
+$("hideLower").onchange=()=>{state.hideLower=$("hideLower").checked;save();};
+$("zeroInventory").onclick=()=>{if(confirm("すべての素材の所持数を0にします。よろしいですか？")){for(const m of MATERIALS)for(const r of RANKS)state.inventory[m][r]=0;save();}};
+$("exportBtn").onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="rbxr_awaken_backup.json";a.click();URL.revokeObjectURL(url);};
+$("importBtn").onclick=()=>$("importFile").click();
+$("importFile").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const parsed=JSON.parse(await f.text());if(!parsed||!Array.isArray(parsed.knights)||!parsed.inventory)throw new Error();if(confirm("現在のデータをバックアップの内容で置き換えますか？")){state={...defaultState(),...parsed};state.catalog=Array.isArray(state.catalog)?state.catalog:[];
+  state.catalog.forEach(parseLegacyStyle);
+  state.knights=(state.knights||[]).map(k=>{if(k.catalogId){const c=state.catalog.find(c=>c.id===k.catalogId);if(c){k.name=c.name;k.styleName=c.styleName||"";k.displayName=displayName(c);}}else{k.displayName=k.name;}return k;});for(const m of MATERIALS){state.inventory[m]??={};for(const r of RANKS)state.inventory[m][r]=Math.max(0,Number(state.inventory[m][r])||0);}save();}}catch(err){alert("バックアップを読み込めませんでした。ファイルを確認してください。");}e.target.value="";};
+function initCollapsiblePanels(){
+ document.querySelectorAll(".panel").forEach(panel=>{
+  const title=panel.querySelector(":scope > h2");
+  if(!title)return;
+  const heading=document.createElement("div");heading.className="panel-heading";
+  const content=document.createElement("div");content.className="panel-content";
+  const toggle=document.createElement("button");toggle.type="button";toggle.className="small collapse-toggle";
+  toggle.setAttribute("aria-expanded","true");toggle.textContent="折りたたむ";
+  let node=title.nextSibling;
+  while(node){const next=node.nextSibling;content.appendChild(node);node=next;}
+  heading.appendChild(title);heading.appendChild(toggle);
+  panel.insertBefore(heading,panel.firstChild);panel.appendChild(content);
+  const label=title.textContent.trim();
+  const collapsed=label.startsWith("①")||label.startsWith("②")||label.startsWith("③")||label.includes("CSV")||label.includes("共通ルール");
+  if(collapsed){content.hidden=true;toggle.textContent="開く";toggle.setAttribute("aria-expanded","false");}
+  toggle.onclick=()=>{const willOpen=content.hidden;content.hidden=!willOpen;toggle.textContent=willOpen?"折りたたむ":"開く";toggle.setAttribute("aria-expanded",String(willOpen));};
+ });
+}
+function updateFoldLabels(){
+ const catalogLabel=$("catalogFoldLabel");if(catalogLabel)catalogLabel.textContent=`登録済みスタイル一覧（${state.catalog.length}件）を表示`;
+ const knightLabel=$("knightFoldLabel");if(knightLabel)knightLabel.textContent=`登録済みの育成目標（${state.knights.length}件）を表示`;
+}
+initCollapsiblePanels();safeLoad();fillSelects();renderRules();render();updateFoldLabels();
+</script></body></html>
